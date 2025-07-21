@@ -32,8 +32,8 @@ async function run() {
     const riceCollection = database.collection('rice-collections');
     const outCollection = database.collection('outCollection')
     const expenseCollection = database.collection('expenseCollection')
-
-
+    const pujaExpenseCollection = database .collection ('pujaExpenseCollection')
+    const currentBillCollection = database . collection('currentBillCollection')
     app.post('/addIncomeData', async (req, res) => {
       const user = req.body;
       const result = await collection.insertOne(user);
@@ -164,10 +164,53 @@ app.delete("/expenses/:id", async (req, res) => {
   res.send(result);
 });
     
+    
 
 
 
     
+// GET route
+app.get("/puja-expenses", async (req, res) => {
+  const data = await pujaExpenseCollection.find({ category: "puja" }).toArray();
+  res.send(data);
+});
+
+// POST route
+app.post("/puja-expenses", async (req, res) => {
+  const result = await pujaExpenseCollection.insertOne({ ...req.body, category: "puja" });
+  res.send({ insertedId: result.insertedId });
+});
+
+// DELETE route
+app.delete("/puja-expenses/:id", async (req, res) => {
+  const id = req.params.id;
+  await pujaExpenseCollection.deleteOne({ _id: new ObjectId(id) });
+  res.send({ deleted: true });
+});
+
+
+
+    
+
+  
+// GET route
+app.get("/current-bills", async (req, res) => {
+  const data = await currentBillCollection.find({ category: "puja" }).toArray();
+  res.send(data);
+});
+
+// POST route
+app.post("/current-bills", async (req, res) => {
+  const result = await currentBillCollection.insertOne({ ...req.body, category: "puja" });
+  res.send({ insertedId: result.insertedId });
+});
+
+// DELETE route
+app.delete("/current-bills/:id", async (req, res) => {
+  const id = req.params.id;
+  await currentBillCollection.deleteOne({ _id: new ObjectId(id) });
+  res.send({ deleted: true });
+});
 
 
 
