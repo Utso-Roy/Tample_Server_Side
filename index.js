@@ -33,7 +33,12 @@ async function run() {
     const outCollection = database.collection('outCollection')
     const expenseCollection = database.collection('expenseCollection')
     const pujaExpenseCollection = database .collection ('pujaExpenseCollection')
-    const currentBillCollection = database . collection('currentBillCollection')
+    const currentBillCollection = database.collection('currentBillCollection')
+    const prosadCollection = database.collection('prosadCollection')
+    const otherBillsCollection = database.collection('otherBillsCollection')
+    const decorationBillsCollection = database . collection('decorationBillsCollection')
+    const khoriBillsCollection = database.collection('KhoriBillsCollection')
+   
     app.post('/addIncomeData', async (req, res) => {
       const user = req.body;
       const result = await collection.insertOne(user);
@@ -60,14 +65,36 @@ async function run() {
 
     app.post('/uttarPara', async (req, res) => {
       const donation = req.body;
+      console.log(donation)
       const result = await collection2.insertOne(donation);
       res.send({ success: true, insertedId: result.insertedId });
     });
 
+   
     app.get('/uttarPara', async (req, res) => {
       const data = await collection2.find({}).toArray();
       res.send({ success: true, data });
     });
+
+
+     // uttarPara total tk 
+
+    app.get('/uttarPara/totalTk', async (req, res) => {
+      const result = await collection2.aggregate([
+        {
+        $group: {
+            _id: null,
+            totalTk : {$sum : "$tk" }
+
+          }
+        }
+      ]).toArray()
+      res.send(result)
+    })
+
+
+
+    //Delete method 
 
     app.delete('/uttarPara/:id', async (req, res) => {
       const id = req.params.id;
@@ -76,7 +103,7 @@ async function run() {
     });
 
 
-
+//outside collection
 
      app.get('/out-collections', async (req, res) => {
       const data = await outCollection.find().sort({ date: -1 }).toArray();
@@ -97,6 +124,106 @@ async function run() {
       res.send(result);
     });
 
+
+//prosad collection
+
+     app.get('/prosad-bills', async (req, res) => {
+      const data = await prosadCollection.find().sort({ date: -1 }).toArray();
+      res.send(data);
+    });
+
+    // POST new
+    app.post('/prosad-bills', async (req, res) => {
+      const doc = req.body;
+      const result = await prosadCollection.insertOne(doc);
+      res.send({ ...doc, _id: result.insertedId });
+    });
+
+    // DELETE
+    app.delete('/prosad-bills/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await prosadCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
+//KhoriBills collection
+
+   // CREATE
+    app.post("/khori-bills", async (req, res) => {
+      const doc = req.body;
+      const result = await khoriBillsCollection.insertOne(doc);
+      res.send({ ...doc, _id: result.insertedId });
+    });
+
+    // get
+    app.get("/khori-bills", async (req, res) => {
+      const data = await khoriBillsCollection.find().toArray();
+      res.send(data);
+    });
+
+    //  DELETE
+    app.delete("/khori-bills/:id", async (req, res) => {
+      const id = req.params.id;
+
+      if (!ObjectId.isValid(id)) {
+        return res.status(400).send({ error: "Invalid ObjectId" });
+      }
+
+      try {
+        const result = await khoriBillsCollection.deleteOne({ _id: new ObjectId(id) });
+
+        if (result.deletedCount === 0) {
+          return res.status(404).send({ error: "No document found to delete" });
+        }
+
+        res.send({ success: true, result });
+      } catch (err) {
+        console.error(" Delete error:", err);
+        res.status(500).send({ error: "Server error" });
+      }
+    });
+
+
+
+
+    //others_bills
+    
+    app.get("/other-bills", async (req, res) => {
+  const result = await otherBillsCollection.find().toArray();
+  res.send(result);
+});
+
+app.post("/other-bills", async (req, res) => {
+  const bill = { ...req.body, category: "other" };
+  const result = await otherBillsCollection.insertOne(bill);
+  res.send({ insertedId: result.insertedId });
+});
+
+app.delete("/other-bills/:id", async (req, res) => {
+  const id = new ObjectId(req.params.id);
+  const result = await otherBillsCollection.deleteOne({ _id: id });
+  res.send(result);
+});
+
+
+    //Decoration_bills
+    
+    app.get("/decoration-bills", async (req, res) => {
+  const result = await decorationBillsCollection.find().toArray();
+  res.send(result);
+});
+
+app.post("/decoration-bills", async (req, res) => {
+  const bill = { ...req.body, category: "other" };
+  const result = await decorationBillsCollection.insertOne(bill);
+  res.send({ insertedId: result.insertedId });
+});
+
+app.delete("/decoration-bills/:id", async (req, res) => {
+  const id = new ObjectId(req.params.id);
+  const result = await decorationBillsCollection.deleteOne({ _id: id });
+  res.send(result);
+});
 
 
 
@@ -200,8 +327,10 @@ app.get("/current-bills", async (req, res) => {
 });
 
 // POST route
-app.post("/current-bills", async (req, res) => {
-  const result = await currentBillCollection.insertOne({ ...req.body, category: "puja" });
+    app.post("/current-bills", async (req, res) => {
+
+
+      const result = await currentBillCollection.insertOne({ ...req.body, category: "puja" });
   res.send({ insertedId: result.insertedId });
 });
 
@@ -222,6 +351,24 @@ app.get("/dokkhin-donations", async (req, res) => {
   const donations = await dokkhiparaCollection.find().toArray();
   res.send(donations);
 });
+//total tk
+
+    app.get('/dokkhinParaTotalTk', async (req, res) => {
+
+      const result = await dokkhiparaCollection.aggregate([
+        
+        {
+          $group: {
+            _id: null,
+            totalTk : {$sum : "$tk" }
+        }
+       }
+      ]).toArray()
+      res.send(result)
+    })
+
+
+
 
 app.post("/dokkhin-donations", async (req, res) => {
   const result = await dokkhiparaCollection.insertOne(req.body);
@@ -233,16 +380,6 @@ app.delete("/dokkhin-donations/:id", async (req, res) => {
   const result = await dokkhiparaCollection.deleteOne({ _id: id });
   res.send(result);
 });
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -266,6 +403,25 @@ app.delete("/dokkhin-donations/:id", async (req, res) => {
       }
     });
 
+
+    app.get('/majhaParaTotalTk', async (req, res) => {
+      
+      const result = await majhaparaCollection.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalTk: {
+              $sum:"$tk"
+            }
+            
+          }
+        }
+        
+
+      ]).toArray()
+      res.send(result)
+      
+    })
 
 
       // Delete a donation by ID
