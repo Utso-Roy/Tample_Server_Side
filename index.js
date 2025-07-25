@@ -36,9 +36,7 @@ async function run() {
     const currentBillCollection = database.collection("currentBillCollection");
     const prosadCollection = database.collection("prosadCollection");
     const otherBillsCollection = database.collection("otherBillsCollection");
-    const decorationBillsCollection = database.collection(
-      "decorationBillsCollection"
-    );
+    const decorationBillsCollection = database.collection("decorationBillsCollection");
     const khoriBillsCollection = database.collection("KhoriBillsCollection");
     const addEventCollection = database.collection('addEventCollection')
 
@@ -217,7 +215,67 @@ async function run() {
   res.send(result);
 });
 
+    //all expense total collection
 
+    
+    const getTotalTkFromCollections = async () => {
+  const pujaTotal = await pujaExpenseCollection.aggregate([
+    { $group: { _id: null, total: { $sum: "$tk" } } },
+  ]).toArray();
+
+  const currentTotal = await currentBillCollection.aggregate([
+    { $group: { _id: null, total: { $sum: "$tk" } } },
+  ]).toArray();
+
+  const prosadTotal = await prosadCollection.aggregate([
+    { $group: { _id: null, total: { $sum: "$tk" } } },
+  ]).toArray();
+
+  const otherTotal = await otherBillsCollection.aggregate([
+    { $group: { _id: null, total: { $sum: "$tk" } } },
+  ]).toArray();
+
+  const decorationTotal = await decorationBillsCollection.aggregate([
+    { $group: { _id: null, total: { $sum: "$tk" } } },
+  ]).toArray();
+
+  const khoriTotal = await khoriBillsCollection.aggregate([
+    { $group: { _id: null, total: { $sum: "$tk" } } },
+  ]).toArray();
+
+  // Total sum from all collections
+  const grandTotal =
+    (pujaTotal[0]?.total || 0) +
+    (currentTotal[0]?.total || 0) +
+    (prosadTotal[0]?.total || 0) +
+    (otherTotal[0]?.total || 0) +
+    (decorationTotal[0]?.total || 0) +
+    (khoriTotal[0]?.total || 0);
+
+  return grandTotal;
+};
+
+    app.get("/totalExpenseAllBills", async (req, res) => {
+  try {
+    const total = await getTotalTkFromCollections();
+    res.send({ totalTk: total });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: "Something went wrong" });
+  }
+});
+
+    
+
+
+
+
+
+
+
+
+
+    
 
 
     //KhoriBills collection
