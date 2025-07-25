@@ -50,7 +50,29 @@ async function run() {
   } else {
     res.send({ suc: false });
   }
+  });
+    
+    //total add Income
+    
+app.get('/totalAddIncome', async (req, res) => {
+  try {
+    const result = await collection.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalTk: { $sum: "$amount" }
+        }
+      }
+    ]).toArray();
+
+    const totalTk = result[0]?.totalTk || 0;
+    res.send({ totalTk });  // send as object for frontend clarity
+  } catch (error) {
+    console.error("Error in /totalAddIncome:", error);
+    res.status(500).send({ error: "Internal Server Error" });
+  }
 });
+
 
 
     app.get("/addIncomeData", async (req, res) => {
@@ -81,6 +103,16 @@ async function run() {
       const data = await collection2.find({}).toArray();
       res.send({ success: true, data });
     });
+
+   
+
+
+
+
+
+
+
+
 
     // uttarPara total tk
 
@@ -198,6 +230,12 @@ async function run() {
       
     })
 
+
+    
+
+
+
+
     //add event get
 
     app.get('/addEvent', async (req, res) => {
@@ -266,8 +304,37 @@ async function run() {
 });
 
     
+    // total add expense income
+    
+ app.get('/totalExpenseIncome', async (req, res) => {
+  try {
+    const result = await expenseCollection.aggregate([
+      {
+        $addFields: {
+          numberAsNumber: { $toDouble: "$number" } 
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalTk: { $sum: "$numberAsNumber" }
+        }
+      }
+    ]).toArray();
+
+    const totalTk = result[0]?.totalTk || 0;
+    res.send({ totalTk });
+  } catch (error) {
+    console.error("Error in /totalExpenseIncome:", error);
+    res.status(500).send({ error: "Internal Server Error" });
+  }
+});
 
 
+
+    // total rice collection
+    
+    
 
 
 
