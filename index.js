@@ -36,44 +36,46 @@ async function run() {
     const currentBillCollection = database.collection("currentBillCollection");
     const prosadCollection = database.collection("prosadCollection");
     const otherBillsCollection = database.collection("otherBillsCollection");
-    const decorationBillsCollection = database.collection("decorationBillsCollection");
+    const decorationBillsCollection = database.collection(
+      "decorationBillsCollection"
+    );
     const khoriBillsCollection = database.collection("KhoriBillsCollection");
-    const addEventCollection = database.collection('addEventCollection')
+    const addEventCollection = database.collection("addEventCollection");
 
-  app.post("/addIncomeData", async (req, res) => {
-  const user = req.body;
-  const result = await collection.insertOne(user);
+    app.post("/addIncomeData", async (req, res) => {
+      const user = req.body;
+      const result = await collection.insertOne(user);
 
-  if (result.insertedId) {
-    const insertedData = { _id: result.insertedId, ...user };
-    res.send({ suc: true, insertedId: result.insertedId, insertedData });
-  } else {
-    res.send({ suc: false });
-  }
-  });
-    
-    //total add Income
-    
-app.get('/totalAddIncome', async (req, res) => {
-  try {
-    const result = await collection.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalTk: { $sum: "$amount" }
-        }
+      if (result.insertedId) {
+        const insertedData = { _id: result.insertedId, ...user };
+        res.send({ suc: true, insertedId: result.insertedId, insertedData });
+      } else {
+        res.send({ suc: false });
       }
-    ]).toArray();
+    });
 
-    const totalTk = result[0]?.totalTk || 0;
-    res.send({ totalTk });  // send as object for frontend clarity
-  } catch (error) {
-    console.error("Error in /totalAddIncome:", error);
-    res.status(500).send({ error: "Internal Server Error" });
-  }
-});
+    //total add Income
 
+    app.get("/totalAddIncome", async (req, res) => {
+      try {
+        const result = await collection
+          .aggregate([
+            {
+              $group: {
+                _id: null,
+                totalTk: { $sum: "$amount" },
+              },
+            },
+          ])
+          .toArray();
 
+        const totalTk = result[0]?.totalTk || 0;
+        res.send({ totalTk }); // send as object for frontend clarity
+      } catch (error) {
+        console.error("Error in /totalAddIncome:", error);
+        res.status(500).send({ error: "Internal Server Error" });
+      }
+    });
 
     app.get("/addIncomeData", async (req, res) => {
       try {
@@ -103,16 +105,6 @@ app.get('/totalAddIncome', async (req, res) => {
       const data = await collection2.find({}).toArray();
       res.send({ success: true, data });
     });
-
-   
-
-
-
-
-
-
-
-
 
     // uttarPara total tk
 
@@ -218,143 +210,125 @@ app.get('/totalAddIncome', async (req, res) => {
 
     //add event
 
-    app.post('/addEvent', async (req, res) => {
-      const event = req.body
+    app.post("/addEvent", async (req, res) => {
+      const event = req.body;
       try {
-        const result = await addEventCollection.insertOne(event)
-        res.send({ success: true, insertedId: result.insertedId })
+        const result = await addEventCollection.insertOne(event);
+        res.send({ success: true, insertedId: result.insertedId });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "Database error" });
       }
-      catch (error) {
-            res.status(500).send({ success: false, message: "Database error" });
-      }
-      
-    })
-
-
-    
-
-
-
+    });
 
     //add event get
 
-    app.get('/addEvent', async (req, res) => {
-      const result = await addEventCollection.find({}).toArray()
-      res.send(result)
-    })
-    
+    app.get("/addEvent", async (req, res) => {
+      const result = await addEventCollection.find({}).toArray();
+      res.send(result);
+    });
 
     // delete event
 
     app.delete("/addEvent/:id", async (req, res) => {
-  const id = req.params.id;
-  const query = { _id: new ObjectId(id) };
-  const result = await addEventCollection.deleteOne(query);
-  res.send(result);
-});
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await addEventCollection.deleteOne(query);
+      res.send(result);
+    });
 
     //all expense total collection
 
-    
     const getTotalTkFromCollections = async () => {
-  const pujaTotal = await pujaExpenseCollection.aggregate([
-    { $group: { _id: null, total: { $sum: "$tk" } } },
-  ]).toArray();
+      const pujaTotal = await pujaExpenseCollection
+        .aggregate([{ $group: { _id: null, total: { $sum: "$tk" } } }])
+        .toArray();
 
-  const currentTotal = await currentBillCollection.aggregate([
-    { $group: { _id: null, total: { $sum: "$tk" } } },
-  ]).toArray();
+      const currentTotal = await currentBillCollection
+        .aggregate([{ $group: { _id: null, total: { $sum: "$tk" } } }])
+        .toArray();
 
-  const prosadTotal = await prosadCollection.aggregate([
-    { $group: { _id: null, total: { $sum: "$tk" } } },
-  ]).toArray();
+      const prosadTotal = await prosadCollection
+        .aggregate([{ $group: { _id: null, total: { $sum: "$tk" } } }])
+        .toArray();
 
-  const otherTotal = await otherBillsCollection.aggregate([
-    { $group: { _id: null, total: { $sum: "$tk" } } },
-  ]).toArray();
+      const otherTotal = await otherBillsCollection
+        .aggregate([{ $group: { _id: null, total: { $sum: "$tk" } } }])
+        .toArray();
 
-  const decorationTotal = await decorationBillsCollection.aggregate([
-    { $group: { _id: null, total: { $sum: "$tk" } } },
-  ]).toArray();
+      const decorationTotal = await decorationBillsCollection
+        .aggregate([{ $group: { _id: null, total: { $sum: "$tk" } } }])
+        .toArray();
 
-  const khoriTotal = await khoriBillsCollection.aggregate([
-    { $group: { _id: null, total: { $sum: "$tk" } } },
-  ]).toArray();
+      const khoriTotal = await khoriBillsCollection
+        .aggregate([{ $group: { _id: null, total: { $sum: "$tk" } } }])
+        .toArray();
 
-  // Total sum from all collections
-  const grandTotal =
-    (pujaTotal[0]?.total || 0) +
-    (currentTotal[0]?.total || 0) +
-    (prosadTotal[0]?.total || 0) +
-    (otherTotal[0]?.total || 0) +
-    (decorationTotal[0]?.total || 0) +
-    (khoriTotal[0]?.total || 0);
+      // Total sum from all collections
+      const grandTotal =
+        (pujaTotal[0]?.total || 0) +
+        (currentTotal[0]?.total || 0) +
+        (prosadTotal[0]?.total || 0) +
+        (otherTotal[0]?.total || 0) +
+        (decorationTotal[0]?.total || 0) +
+        (khoriTotal[0]?.total || 0);
 
-  return grandTotal;
-};
+      return grandTotal;
+    };
 
     app.get("/totalExpenseAllBills", async (req, res) => {
-  try {
-    const total = await getTotalTkFromCollections();
-    res.send({ totalTk: total });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({ error: "Something went wrong" });
-  }
-});
-
-    
-    // total add expense income
-    
- app.get('/totalExpenseIncome', async (req, res) => {
-  try {
-    const result = await expenseCollection.aggregate([
-      {
-        $addFields: {
-          numberAsNumber: { $toDouble: "$number" } 
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          totalTk: { $sum: "$numberAsNumber" }
-        }
+      try {
+        const total = await getTotalTkFromCollections();
+        res.send({ totalTk: total });
+      } catch (err) {
+        console.error(err);
+        res.status(500).send({ error: "Something went wrong" });
       }
-    ]).toArray();
+    });
 
-    const totalTk = result[0]?.totalTk || 0;
-    res.send({ totalTk });
-  } catch (error) {
-    console.error("Error in /totalExpenseIncome:", error);
-    res.status(500).send({ error: "Internal Server Error" });
-  }
-});
+    // total add expense income
 
+    app.get("/totalExpenseIncome", async (req, res) => {
+      try {
+        const result = await expenseCollection
+          .aggregate([
+            {
+              $addFields: {
+                numberAsNumber: { $toDouble: "$number" },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                totalTk: { $sum: "$numberAsNumber" },
+              },
+            },
+          ])
+          .toArray();
 
+        const totalTk = result[0]?.totalTk || 0;
+        res.send({ totalTk });
+      } catch (error) {
+        console.error("Error in /totalExpenseIncome:", error);
+        res.status(500).send({ error: "Internal Server Error" });
+      }
+    });
 
     // total rice collection
-    
-    app.get('/totalRiceCollection', async (req, res) => {
-      const result = await riceCollection.aggregate([
-        {
-          $group: {
-            _id: null,
-            totalRice : {$sum : "$kg"}
-          }
-        }
-      ]).toArray()
+
+    app.get("/totalRiceCollection", async (req, res) => {
+      const result = await riceCollection
+        .aggregate([
+          {
+            $group: {
+              _id: null,
+              totalRice: { $sum: "$kg" },
+            },
+          },
+        ])
+        .toArray();
       const totalRiceIncome = result[0]?.totalRice || 0;
-      res.send({totalRiceIncome})
-    })
-
-
-
-
-
-
-
-    
-
+      res.send({ totalRiceIncome });
+    });
 
     //KhoriBills collection
 
