@@ -334,7 +334,18 @@ app.get('/totalAddIncome', async (req, res) => {
 
     // total rice collection
     
-    
+    app.get('/totalRiceCollection', async (req, res) => {
+      const result = await riceCollection.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalRice : {$sum : "$kg"}
+          }
+        }
+      ]).toArray()
+      const totalRiceIncome = result[0]?.totalRice || 0;
+      res.send({totalRiceIncome})
+    })
 
 
 
